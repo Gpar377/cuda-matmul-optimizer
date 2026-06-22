@@ -1,0 +1,57 @@
+import numpy as np
+import torch
+import time
+import sys
+import os
+
+# Include build directory to load custom pybind11 module
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../build')))
+
+try:
+    import cuda_matmul_backend as backend
+    print("SUCCESS: Loaded cuda_matmul_backend module successfully!")
+except ImportError as e:
+    print(f"ERROR: Could not load custom CUDA backend module: {e}")
+    print("Please verify you compiled it using: cmake -B build && cmake --build build")
+    sys.exit(1)
+
+def verify_correctness():
+    M, N, K = 512, 512, 512
+    print(f"Initializing random validation matrices ({M}x{K} * {K}x{N})...")
+    
+    # Generate random floats
+    A = np.random.rand(M, K).astype(np.float32)
+    B = np.random.rand(K, N).astype(np.float32)
+    
+    # Run CPU NumPy comparison
+    print("Running CPU NumPy matmul reference...")
+    start_cpu = time.perf_counter()
+    C_cpu = np.matmul(A, B)
+    end_cpu = time.perf_counter()
+    print(f"NumPy CPU execution time: {(end_cpu - start_cpu)*1000:.2f} ms")
+    
+    # Run custom GPU naive kernel
+    print("Running Custom GPU naive matmul...")
+    try:
+        start_gpu = time.perf_counter()
+        C_gpu = backend.matmul_naive(A, B)
+        end_gpu = time.perf_counter()
+        print(f"Custom GPU naive execution time: {(end_gpu - start_gpu)*1000:.2f} ms")
+    except Exception as e:
+        print(f"GPU Execution error: {e}")
+        sys.exit(1)
+        
+    # Check difference within tolerance
+    diff = np.abs(C_cpu - C_gpu)
+    max_diff = np.max(diff)
+    mean_diff = np.mean(diff)
+    
+    print(f"Validation metrics - Max discrepancy: {max_diff:.6f} | Mean discrepancy: {mean_diff:.6f}")
+    if max_diff < 1e-4:
+        print("PASSED: Custom CUDA naive results match CPU reference output within tolerance!")
+    else:
+        print("FAILED: Output discrepancy exceeds precision tolerances!")
+        sys.exit(1)
+
+if __name__ == "__main__":
+    verify_correctness()
