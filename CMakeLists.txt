@@ -28,3 +28,9 @@ target_compile_options(matmul_test PRIVATE
     $<$<COMPILE_LANGUAGE:CUDA>:--use_fast_math -O3>
     $<$<COMPILE_LANGUAGE:CXX>:-O3>
 )
+
+# Add pybind11 subdirectory and compile Python module
+add_subdirectory(third_party/pybind11)
+pybind11_add_module(cuda_matmul_backend src/bindings.cpp src/matmul.cu)
+target_include_directories(cuda_matmul_backend PRIVATE ${PROJECT_SOURCE_DIR}/include)
+
