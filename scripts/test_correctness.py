@@ -46,12 +46,35 @@ def verify_correctness():
     max_diff = np.max(diff)
     mean_diff = np.mean(diff)
     
-    print(f"Validation metrics - Max discrepancy: {max_diff:.6f} | Mean discrepancy: {mean_diff:.6f}")
-    if max_diff < 1e-4:
-        print("PASSED: Custom CUDA naive results match CPU reference output within tolerance!")
+    print(f"Naive GPU metrics - Max discrepancy: {max_diff:.6f} | Mean discrepancy: {mean_diff:.6f}")
+    if max_diff >= 1e-4:
+        print("FAILED: Naive GPU output discrepancy exceeds precision tolerances!")
+        sys.exit(1)
+    print("PASSED: Custom CUDA naive results match CPU reference!")
+
+    # Run custom GPU shared memory kernel
+    print("Running Custom GPU shared memory matmul...")
+    try:
+        start_gpu_shared = time.perf_counter()
+        C_gpu_shared = backend.matmul_shared(A, B)
+        end_gpu_shared = time.perf_counter()
+        print(f"Custom GPU shared memory execution time: {(end_gpu_shared - start_gpu_shared)*1000:.2f} ms")
+    except Exception as e:
+        print(f"GPU Shared Execution error: {e}")
+        sys.exit(1)
+
+    # Check difference within tolerance for shared memory kernel
+    diff_shared = np.abs(C_cpu - C_gpu_shared)
+    max_diff_shared = np.max(diff_shared)
+    mean_diff_shared = np.mean(diff_shared)
+
+    print(f"Shared GPU metrics - Max discrepancy: {max_diff_shared:.6f} | Mean discrepancy: {mean_diff_shared:.6f}")
+    if max_diff_shared < 1e-4:
+        print("PASSED: Custom CUDA shared memory results match CPU reference output within tolerance!")
     else:
-        print("FAILED: Output discrepancy exceeds precision tolerances!")
+        print("FAILED: Shared GPU output discrepancy exceeds precision tolerances!")
         sys.exit(1)
 
 if __name__ == "__main__":
     verify_correctness()
+
