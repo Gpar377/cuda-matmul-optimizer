@@ -97,7 +97,21 @@ int main() {
         return -1;
     }
 
+    // Reset output buffer and verify vectorized kernel
+    std::fill(h_C_gpu.begin(), h_C_gpu.end(), 0.0f);
+    std::cout << "Running GPU vectorized multiplication..." << std::endl;
+    matmul_vectorized(h_A.data(), h_B.data(), h_C_gpu.data(), M, N, K);
+
+    std::cout << "Checking vectorized results..." << std::endl;
+    if (verifyCorrectness(h_C_cpu, h_C_gpu)) {
+        std::cout << "SUCCESS: GPU vectorized and CPU results match." << std::endl;
+    } else {
+        std::cout << "FAIL: GPU vectorized and CPU results mismatch." << std::endl;
+        return -1;
+    }
+
     return 0;
 }
+
 
 
