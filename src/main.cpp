@@ -63,13 +63,27 @@ int main() {
     std::cout << "Running GPU naive multiplication..." << std::endl;
     matmul_naive(h_A.data(), h_B.data(), h_C_gpu.data(), M, N, K);
 
-    std::cout << "Checking results..." << std::endl;
+    std::cout << "Checking naive results..." << std::endl;
     if (verifyCorrectness(h_C_cpu, h_C_gpu)) {
-        std::cout << "SUCCESS: GPU and CPU results match." << std::endl;
+        std::cout << "SUCCESS: GPU naive and CPU results match." << std::endl;
     } else {
-        std::cout << "FAIL: GPU and CPU results mismatch." << std::endl;
+        std::cout << "FAIL: GPU naive and CPU results mismatch." << std::endl;
+        return -1;
+    }
+
+    // Reset output buffer and verify shared memory kernel
+    std::fill(h_C_gpu.begin(), h_C_gpu.end(), 0.0f);
+    std::cout << "Running GPU shared memory multiplication..." << std::endl;
+    matmul_shared(h_A.data(), h_B.data(), h_C_gpu.data(), M, N, K);
+
+    std::cout << "Checking shared memory results..." << std::endl;
+    if (verifyCorrectness(h_C_cpu, h_C_gpu)) {
+        std::cout << "SUCCESS: GPU shared memory and CPU results match." << std::endl;
+    } else {
+        std::cout << "FAIL: GPU shared memory and CPU results mismatch." << std::endl;
         return -1;
     }
 
     return 0;
 }
+
