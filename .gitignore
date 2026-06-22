@@ -1,0 +1,26 @@
+# Compiled binaries and object files
+build/
+*.o
+*.obj
+*.so
+*.dylib
+*.dll
+*.exe
+*.out
+
+# Python virtual environments and caches
+.venv/
+env/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.ipynb_checkpoints/
+
+# IDE and System files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
