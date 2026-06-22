@@ -98,7 +98,31 @@ def verify_correctness():
         print("FAILED: Tiled GPU output discrepancy exceeds precision tolerances!")
         sys.exit(1)
 
+    # Run custom GPU vectorized kernel
+    print("Running Custom GPU vectorized matmul...")
+    try:
+        start_gpu_vec = time.perf_counter()
+        C_gpu_vec = backend.matmul_vectorized(A, B)
+        end_gpu_vec = time.perf_counter()
+        print(f"Custom GPU vectorized execution time: {(end_gpu_vec - start_gpu_vec)*1000:.2f} ms")
+    except Exception as e:
+        print(f"GPU Vectorized Execution error: {e}")
+        sys.exit(1)
+
+    # Check difference within tolerance for vectorized kernel
+    diff_vec = np.abs(C_cpu - C_gpu_vec)
+    max_diff_vec = np.max(diff_vec)
+    mean_diff_vec = np.mean(diff_vec)
+
+    print(f"Vectorized GPU metrics - Max discrepancy: {max_diff_vec:.6f} | Mean discrepancy: {mean_diff_vec:.6f}")
+    if max_diff_vec < 1e-4:
+        print("PASSED: Custom CUDA vectorized results match CPU reference output within tolerance!")
+    else:
+        print("FAILED: Vectorized GPU output discrepancy exceeds precision tolerances!")
+        sys.exit(1)
+
 if __name__ == "__main__":
     verify_correctness()
+
 
 
