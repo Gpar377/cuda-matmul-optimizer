@@ -75,6 +75,30 @@ def verify_correctness():
         print("FAILED: Shared GPU output discrepancy exceeds precision tolerances!")
         sys.exit(1)
 
+    # Run custom GPU thread tiled kernel
+    print("Running Custom GPU thread tiled matmul...")
+    try:
+        start_gpu_tiled = time.perf_counter()
+        C_gpu_tiled = backend.matmul_tiled(A, B)
+        end_gpu_tiled = time.perf_counter()
+        print(f"Custom GPU thread tiled execution time: {(end_gpu_tiled - start_gpu_tiled)*1000:.2f} ms")
+    except Exception as e:
+        print(f"GPU Tiled Execution error: {e}")
+        sys.exit(1)
+
+    # Check difference within tolerance for thread tiled kernel
+    diff_tiled = np.abs(C_cpu - C_gpu_tiled)
+    max_diff_tiled = np.max(diff_tiled)
+    mean_diff_tiled = np.mean(diff_tiled)
+
+    print(f"Tiled GPU metrics - Max discrepancy: {max_diff_tiled:.6f} | Mean discrepancy: {mean_diff_tiled:.6f}")
+    if max_diff_tiled < 1e-4:
+        print("PASSED: Custom CUDA thread tiled results match CPU reference output within tolerance!")
+    else:
+        print("FAILED: Tiled GPU output discrepancy exceeds precision tolerances!")
+        sys.exit(1)
+
 if __name__ == "__main__":
     verify_correctness()
+
 
