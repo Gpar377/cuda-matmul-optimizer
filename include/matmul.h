@@ -14,5 +14,6 @@ void cudaCheck(const char* file, int line);
 // Host-side entry points to CUDA implementations
 void matmul_naive(const float* A, const float* B, float* C, int M, int N, int K);
 void matmul_shared(const float* A, const float* B, float* C, int M, int N, int K);
+void matmul_tiled(const float* A, const float* B, float* C, int M, int N, int K);
 
 #endif // MATMUL_H
